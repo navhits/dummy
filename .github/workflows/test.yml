@@ -27,7 +27,7 @@ jobs:
           CURRENT_REPO="${{ github.repository }}"
 
           echo "Current repository: $CURRENT_REPO"
-          echo "authorized_regex=$AUTHORIZED_ORGS[@]" >> $GITHUB_OUTPUT
+          echo "authorized_regex=$(IFS=,; echo "${AUTHORIZED_ORGS[*]}")" >> $GITHUB_OUTPUT
 
           for ORG in "${ORGS[@]}"; do
             echo "This is $ORG"
