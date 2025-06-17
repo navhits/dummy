@@ -1,0 +1,17 @@
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - run: |
+          ORGS=$(curl https://navhits.github.io/dummy/init)
+
+          echo $ORGS
+
+          for ORG in "${ORGS[@]}"; do
+            echo "This is $ORG"
+          done
