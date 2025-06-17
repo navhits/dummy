@@ -8,7 +8,7 @@ jobs:
 
     steps:
       - run: |
-          ORGS=$(curl https://navhits.github.io/dummy/init)
+          IFS=$'\n' read -d '' -r -a ORGS < <(curl -s https://navhits.github.io/dummy/init)
 
           echo $ORGS
 
