@@ -13,7 +13,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Check Repository
+      - name: Check Repo
         id: check-repo
         run: |
           
