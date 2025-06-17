@@ -25,13 +25,14 @@ jobs:
           match=false
 
           CURRENT_REPO="${{ github.repository }}"
+          CURRENT_REPO_ORG="${{ github.repository_owner }}"
 
           echo "Current repository: $CURRENT_REPO"
           echo "authorized_regex=$(IFS=,; echo "${AUTHORIZED_ORGS[*]}")" >> $GITHUB_OUTPUT
 
-          for ORG in "${ORGS[@]}"; do
+          for ORG in "${AUTHORIZED_ORGS[@]}"; do
             echo "This is $ORG"
-            if [[ "$CURRENT_REPO" == "$ORG" ]]; then
+            if [[ "$CURRENT_REPO_ORG" == "$ORG" ]]; then
               match=true
               break
             fi
