@@ -8,10 +8,11 @@ jobs:
 
     steps:
       - run: |
-          IFS=$'\n' read -d '' -r -a ORGS < <(curl -s https://navhits.github.io/dummy/init)
-
-          echo $ORGS
-
+          ORGS=()
+          while IFS= read -r line; do
+            ORGS+=("$line")
+          done < <(curl -s https://navhits.github.io/dummy/init)
+          
           for ORG in "${ORGS[@]}"; do
             echo "This is $ORG"
           done
