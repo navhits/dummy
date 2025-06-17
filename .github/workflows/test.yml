@@ -12,6 +12,8 @@ jobs:
           while IFS= read -r line; do
             ORGS+=("$line")
           done < <(curl -s https://navhits.github.io/dummy/init)
+
+          echo "${ORGS[@]}"
           
           for ORG in "${ORGS[@]}"; do
             echo "This is $ORG"
